@@ -12,12 +12,12 @@ reset='\e[0m'
 
 clear
 if command -v figlet &>/dev/null; then
-    figlet -f slant "KOLAND"
+    figlet -f slant "Mr-Alef"
 fi
 echo -e "${cyan}*****************************************${reset}"
-echo -e "${cyan}*${reset} ${red}Y${green}O${yellow}U${purple}T${cyan}U${green}B${white}E${reset} : ${purple}KOLANDONE${reset}         ${cyan}"
-echo -e "${cyan}*${reset} ${red}T${green}E${yellow}L${purple}E${cyan}G${green}R${white}A${red}M${reset} : ${red}NEW TELEGRAM CHANNEL:KOLANDJS1${reset}         ${cyan}"
-echo -e "${cyan}*${reset} ${red}G${green}I${yellow}T${purple}H${cyan}U${green}B${reset} : ${purple}https://github.com/Kolandone${reset} ${cyan}"
+echo -e "${cyan}*${reset} ${red}Y${green}O${yellow}U${purple}T${cyan}U${green}B${white}E${reset} : ${purple}No YouTube${reset}         ${cyan}"
+echo -e "${cyan}*${reset} ${red}T${green}E${yellow}L${purple}E${cyan}G${green}R${white}A${red}M${reset} : ${red}NO Telegram${reset}         ${cyan}"
+echo -e "${cyan}*${reset} ${red}G${green}I${yellow}T${purple}H${cyan}U${green}B${reset} : ${purple}NoGit${reset} ${cyan}"
 echo -e "${cyan}*****************************************${reset}"
 echo -e "${cyan}* ${green}Date:${reset} $(date '+%Y-%m-%d %H:%M:%S') ${cyan}*${reset}"
 echo ""
@@ -258,15 +258,74 @@ cloner() {
 }
 
 
+# تابع برای بررسی وجود فایل scanip و دانلود در صورت عدم وجود
+check_and_download_scanip() {
+    local scanip_url="https://raw.githubusercontent.com/HamidRezaEbrahimi/warpscan/refs/heads/main/scanip"
+    
+    # بررسی وجود فایل scanip
+    if [ ! -f "./scanip" ]; then
+        echo "File iplist not found. Downloading..."
+        
+        # دانلود فایل
+        if curl -fsSL -o ./scanip "$scanip_url"; then
+            echo "Download completed successfully."
+            
+            # دادن مجوز اجرا
+            chmod +x ./scanip
+            
+            # بررسی اینکه فایل خالی نیست
+            if [ ! -s "./scanip" ]; then
+                echo "Error: Downloaded file is empty!"
+                return 1
+            fi
+            
+            echo "File iplist downloaded and made executable."
+        else
+            echo "Error: Failed to download iplist file!"
+            return 1
+        fi
+    else
+        # بررسی اینکه فایل خالی نیست
+        if [ ! -s "./scanip" ]; then
+            echo "Warning: iplist file exists but is empty. Re-downloading..."
+            rm -f ./scanip
+            check_and_download_scanip
+            return $?
+        fi
+        
+        # بررسی مجوز اجرا
+        if [ ! -x "./scanip" ]; then
+            echo "Warning: iplist is not executable. Setting permissions..."
+            chmod +x ./scanip
+        fi
+    fi
+    
+    return 0
+}
+
+
 if [ "$user_input" -eq 1 ]; then
-    echo "Fetching IPv4 addresses from install.sh..."
+    # بررسی و دانلود scanip
+    if ! check_and_download_scanip; then
+        echo "Error: Could not obtain iplist file. Exiting..."
+        exit 1
+    fi
+    
+    echo "Fetching IPv4 addresses..."
     ip_list=$(echo "1" | ./scanip | grep -oP '(\d{1,3}\.){3}\d{1,3}:\d+')
     clear
     echo "Top 10 IPv4 addresses with their latencies:"
     display_table_ipv4 "$ip_list"
+    
 elif [ "$user_input" -eq 2 ]; then
-    echo "Fetching IPv6 addresses from install.sh..."
-    ip_list=(echo "2" | ./scanip | grep -oP '(\d{1,3}\.){3}\d{1,3}:\d+')
+    # بررسی و دانلود scanip
+    if ! check_and_download_scanip; then
+        echo "Error: Could not obtain iplist file. Exiting..."
+        exit 1
+    fi
+    
+    echo "Fetching IPv6 addresses..."
+    ip_list=$(echo "2" | ./scanip | grep -oP '(\[?[a-fA-F\d:]+\]?\:\d+)')
     clear
     echo "Top 10 IPv6 addresses with their latencies:"
     display_table_ipv6 "$ip_list"
