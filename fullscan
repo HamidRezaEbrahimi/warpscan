@@ -260,13 +260,13 @@ cloner() {
 
 if [ "$user_input" -eq 1 ]; then
     echo "Fetching IPv4 addresses from install.sh..."
-    ip_list=$(./scanip -4 | grep -oP '(\d{1,3}\.){3}\d{1,3}:\d+')
+    ip_list=$(echo "1" | ./scanip | grep -oP '(\d{1,3}\.){3}\d{1,3}:\d+')
     clear
     echo "Top 10 IPv4 addresses with their latencies:"
     display_table_ipv4 "$ip_list"
 elif [ "$user_input" -eq 2 ]; then
     echo "Fetching IPv6 addresses from install.sh..."
-    ip_list=$(./scanip -6 | grep -oP '(\[?[a-fA-F\d:]+\]?\:\d+)')
+    ip_list=(echo "2" | ./scanip | grep -oP '(\d{1,3}\.){3}\d{1,3}:\d+')
     clear
     echo "Top 10 IPv6 addresses with their latencies:"
     display_table_ipv6 "$ip_list"
